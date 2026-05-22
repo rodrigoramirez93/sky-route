@@ -1,9 +1,14 @@
 <header class="sr-header">
-  <h1>SkyRoute</h1>
-  <nav>
-    <a routerLink="/search" routerLinkActive="active">Search</a>
-    <a routerLink="/book" routerLinkActive="active">Book</a>
-  </nav>
+  <div class="sr-header-inner">
+    <a class="sr-brand" routerLink="/search" aria-label="SkyRoute home">
+      <span class="sr-brand-icon" aria-hidden="true">✈</span>
+      <h1 class="sr-brand-text">SkyRoute</h1>
+    </a>
+    <nav aria-label="Primary">
+      <a routerLink="/search" routerLinkActive="active">Search</a>
+      <a routerLink="/book" routerLinkActive="active">Book</a>
+    </nav>
+  </div>
 </header>
 
 <main class="sr-main">

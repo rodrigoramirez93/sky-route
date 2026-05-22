@@ -27,22 +27,28 @@ import { passportValidator } from '../validators/passport.validator';
   ],
   template: `
     <label class="sr-document">
-      <span>{{ label() }}</span>
+      <span class="sr-label">{{ label() }}</span>
       <input
         type="text"
         [formControl]="control"
         [attr.aria-label]="label()"
+        [attr.aria-describedby]="hintId"
+        [class.sr-input-error]="control.touched && control.invalid"
         (blur)="onTouched()"
       />
+      <small [id]="hintId" class="sr-hint">{{ helperText() }}</small>
       @if (control.touched && control.invalid) {
-        <small class="sr-error">{{ errorMessage() }}</small>
+        <small class="sr-error-text">{{ errorMessage() }}</small>
       }
     </label>
   `,
   styles: [
     `
-      .sr-document { display: flex; flex-direction: column; gap: 0.25rem; }
-      .sr-error { color: #b00020; }
+      .sr-document { display: flex; flex-direction: column; gap: 0.3rem; }
+      .sr-label { font-size: 0.8rem; font-weight: 600; color: var(--sr-muted); }
+      .sr-hint { color: var(--sr-muted); font-size: 0.75rem; }
+      .sr-error-text { color: var(--sr-danger); font-size: 0.78rem; }
+      .sr-input-error { border-color: var(--sr-danger); box-shadow: 0 0 0 3px rgba(176, 0, 32, 0.12); }
     `,
   ],
 })
@@ -69,6 +75,14 @@ export class DocumentFieldComponent implements ControlValueAccessor, Validator {
   label(): string {
     return this.isInternational() ? 'Passport Number' : 'National ID';
   }
+
+  helperText(): string {
+    return this.isInternational()
+      ? 'Used for international travel (6–9 alphanumeric characters).'
+      : 'Used for domestic flights (5–12 digits).';
+  }
+
+  protected readonly hintId = `sr-doc-hint-${Math.random().toString(36).slice(2, 9)}`;
 
   errorMessage(): string {
     if (this.control.hasError('required')) {

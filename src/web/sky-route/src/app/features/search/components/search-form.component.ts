@@ -12,7 +12,7 @@ import { FlightSearchService } from '../services/flight-search.service';
   template: `
     <form [formGroup]="form" (ngSubmit)="submit()" class="sr-search-form">
       <label>
-        Origin
+        <span class="sr-label">✈ Origin</span>
         <select formControlName="originCode">
           <option value="" disabled>Select…</option>
           @for (a of airports(); track a.code) {
@@ -22,7 +22,7 @@ import { FlightSearchService } from '../services/flight-search.service';
       </label>
 
       <label>
-        Destination
+        <span class="sr-label">🎯 Destination</span>
         <select formControlName="destinationCode">
           <option value="" disabled>Select…</option>
           @for (a of airports(); track a.code) {
@@ -32,17 +32,17 @@ import { FlightSearchService } from '../services/flight-search.service';
       </label>
 
       <label>
-        Departure
+        <span class="sr-label">Departure</span>
         <input type="date" formControlName="departureDate" [min]="today" />
       </label>
 
       <label>
-        Passengers
+        <span class="sr-label">Passengers</span>
         <input type="number" min="1" max="9" formControlName="passengers" />
       </label>
 
       <label>
-        Cabin
+        <span class="sr-label">Cabin</span>
         <select formControlName="cabin">
           @for (c of cabins; track c) {
             <option [value]="c">{{ c }}</option>
@@ -50,18 +50,30 @@ import { FlightSearchService } from '../services/flight-search.service';
         </select>
       </label>
 
-      <button type="submit" [disabled]="form.invalid || sameRoute()">Search flights</button>
+      <div class="sr-submit-cell">
+        <button type="submit" class="sr-btn-primary" [disabled]="form.invalid || sameRoute()">
+          Search flights
+        </button>
+      </div>
+
       @if (sameRoute()) {
-        <p class="sr-form-error">Origin and destination must differ.</p>
+        <p class="sr-form-hint">Origin and destination must differ.</p>
       }
     </form>
   `,
   styles: [
     `
-      .sr-search-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; align-items: end; }
-      label { display: flex; flex-direction: column; font-size: 0.875rem; gap: 0.25rem; }
-      button { padding: 0.6rem 1rem; font-weight: 600; }
-      .sr-form-error { color: #b00020; grid-column: 1 / -1; margin: 0; }
+      .sr-search-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 0.85rem;
+        align-items: end;
+      }
+      label { display: flex; flex-direction: column; gap: 0.3rem; }
+      .sr-label { font-size: 0.8rem; font-weight: 600; color: var(--sr-muted); letter-spacing: 0.01em; }
+      .sr-submit-cell { display: flex; align-items: end; }
+      .sr-submit-cell button { width: 100%; }
+      .sr-form-hint { color: var(--sr-danger); grid-column: 1 / -1; margin: 0; font-size: 0.85rem; }
     `,
   ],
 })

@@ -28,8 +28,10 @@ import { FlightOffer } from '../../../shared';
   styles: [
     `
       .sr-breakdown { width: 100%; border-collapse: collapse; }
-      td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #eee; }
-      .sr-total td { font-weight: 700; border-bottom: none; }
+      td { padding: 0.5rem 0.2rem; border-bottom: 1px solid var(--sr-border); color: var(--sr-muted); }
+      td:last-child { text-align: right; color: var(--sr-text); font-variant-numeric: tabular-nums; }
+      .sr-total td { font-weight: 700; border-bottom: none; padding-top: 0.85rem; font-size: 1.1rem; }
+      .sr-total td:last-child { color: var(--sr-primary); }
     `,
   ],
 })
