@@ -16,7 +16,7 @@ namespace SkyRoute.Api.Controllers
         public BookingController(ILogger<BookingController> logger)
         {
             _logger = logger;
-            _logger.LogInformation("BookingController initialized.");
+            _logger.LogInformation("Hello from {controller}.", nameof(BookingController));
         }
 
         [HttpGet(Name = "Booking")]
