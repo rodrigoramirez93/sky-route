@@ -11,6 +11,14 @@ namespace SkyRoute.Api.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         ];
 
+        private readonly ILogger<BookingController> _logger;
+
+        public BookingController(ILogger<BookingController> logger)
+        {
+            _logger = logger;
+            _logger.LogInformation("BookingController initialized.");
+        }
+
         [HttpGet(Name = "Booking")]
         public IEnumerable<WeatherForecast> Get()
         {
