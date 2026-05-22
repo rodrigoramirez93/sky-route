@@ -1,9 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,5 +12,10 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
   </ItemGroup>
-	
+
+  <ItemGroup>
+    <ProjectReference Include="..\SkyRoute.BusinessLogic\SkyRoute.BusinessLogic.csproj" />
+    <ProjectReference Include="..\SkyRoute.DataAccessLayer\SkyRoute.DataAccessLayer.csproj" />
+  </ItemGroup>
+
 </Project>

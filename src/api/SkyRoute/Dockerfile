@@ -3,6 +3,7 @@ WORKDIR /src
 
 # Copy solution and project files first for layer-cached restore
 COPY Directory.Packages.props Directory.Packages.props
+COPY Directory.Build.props Directory.Build.props
 COPY SkyRoute.slnx ./
 COPY src/SkyRoute.Api/SkyRoute.Api.csproj                             src/SkyRoute.Api/
 COPY src/SkyRoute.BusinessLogic/SkyRoute.BusinessLogic.csproj         src/SkyRoute.BusinessLogic/

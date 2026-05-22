@@ -3,6 +3,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Serilog;
+using SkyRoute.Api.Composition;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -10,6 +11,7 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string CorsPolicyName = "SkyRouteCors";
 var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? "SkyRoute.Api";
 
 builder.Host.UseSerilog((context, services, configuration) =>
@@ -32,6 +34,7 @@ builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService(serviceName))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
+        .AddSource("SkyRoute.BusinessLogic")
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
@@ -39,7 +42,7 @@ builder.Services.AddOpenTelemetry()
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(nameof(SkyRoute), policy =>
+    options.AddPolicy(CorsPolicyName, policy =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod());
@@ -47,6 +50,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSkyRoute();
 
 var app = builder.Build();
 
@@ -55,9 +59,11 @@ app.Logger.LogInformation("SkyRoute.Api starting up. Service: {ServiceName}", se
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseCors(nameof(SkyRoute));
 }
 
+app.UseCors(CorsPolicyName);
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program;

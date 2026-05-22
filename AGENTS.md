@@ -1,220 +1,187 @@
 # AGENTS.md — SkyRoute Travel Platform
 
-This file is the working brief for AI coding agents (Copilot, Cursor, Claude, etc.)
-contributing to this repository. It captures **what the project must become**
-(per the hiring challenge) and **what currently exists** (work-in-progress
-scaffolding). Keep it up to date as the implementation evolves.
+This file is the authoritative working brief for AI coding agents (Copilot,
+Cursor, Claude, …) contributing to this repository. Read this **before**
+making changes.
 
-> Status: 🚧 Scaffolding stage. Domain code for flight search and booking is
-> **not yet implemented** — only Angular + ASP.NET Core project skeletons,
-> OpenTelemetry wiring, and an Aspire Dashboard via docker-compose.
-
----
-
-## 1. Goal — What we're building
-
-A **Flight Search & Booking module** for SkyRoute, a flight aggregator. The
-scope is taken from `docs/Requirements.pdf` (Senior Full-Stack Challenge,
-3–4 hours, Angular + .NET).
-
-### 1.1 Business rules
-
-SkyRoute aggregates flights from multiple **providers**. For this challenge,
-two providers must be **mocked in the backend** (no real external APIs):
-
-| Provider     | Pricing rule                                                                                                            |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| GlobalAir    | `final = baseFare × 1.15` (15% fuel surcharge). Round to 2 decimals.                                                    |
-| BudgetWings  | `final = max(baseFare × 0.90, 29.99)` (10% promo discount on base fare only; $29.99 floor).                              |
-
-⚠️ The architecture **must make it easy to add new providers later**
-(open/closed — new provider = new class/strategy, no edits to existing ones).
-
-### 1.2 Functional requirements
-
-**Flight Search form** (frontend → backend):
-- Origin & destination airports — dropdown, hardcoded ≥ 6 airports across ≥ 2 countries.
-- Departure date.
-- Number of passengers (1–9).
-- Cabin class: Economy / Business / First.
-
-**Results list/table** shows: provider, flight number, departure time,
-arrival time, duration, cabin class, price.
-
-- **Price displayed must be the TOTAL for all passengers**, with the
-  per-passenger price shown as secondary info (e.g. `USD 320.00 total / USD 160.00 per person`).
-- Sorting on the **frontend only** (no extra API call) by: price asc, price desc,
-  duration (shortest first), departure time.
-- Loading indicator while searching; clear empty state when no results.
-
-**Booking flow**:
-- Selecting a flight opens a booking screen with:
-  - Flight summary (route, provider, times, cabin class).
-  - Price breakdown (per-passenger × passengers = total).
-  - Passenger form: full name, email, document number.
-  - Confirm action → backend → returns a booking reference code.
-- ⚠️ **Document field is route-dependent**:
-  - Origin & destination in **different countries** → label `Passport Number`, validate as passport.
-  - Same country (domestic) → label `National ID`, validate accordingly.
-  - Both label and validation must switch dynamically.
-
-**Backend API**: design endpoints & contracts for the flows above.
-
-### 1.3 Deliverables (per the PDF)
-
-1. Working app (frontend + backend) runnable locally.
-2. Source in a Git repo (this one).
-3. README with: setup/run instructions, architecture decisions, trade-offs / known limitations.
-4. No cloud deployment required. Document anything skipped due to time.
+> Status: ✅ Functional. Backend (3-layer .NET) and frontend (two independent
+> Angular feature modules) implement the full Flight Search & Booking flow.
+> See `README.md` for run instructions and architecture summary.
 
 ---
 
-## 2. Tech stack (mandated)
+## 1. What this project is
 
-- **Frontend:** Angular 21 (standalone components, signals, Vitest for unit tests).
-- **Backend:** ASP.NET Core (.NET 10 preview, `Microsoft.AspNetCore.OpenApi` 10.0.8),
-  layered as `Api` → `BusinessLogic` → `DataAccessLayer`.
-- **Observability:** OpenTelemetry (traces, metrics, logs) + Serilog on the API;
-  OTLP/HTTP logs exporter in the Angular app. Aspire Dashboard collects both.
-- **Local infra:** `docker-compose.yml` runs `aspire-dashboard`, `api`, `web`.
-- **Tests:** xUnit + Moq (.NET), Vitest (Angular). E2E placeholder: `test/black-box-e2e-selenium-project.txt`.
+A Flight Search & Booking module for **SkyRoute**, a flight aggregator. The
+domain is sourced from `docs/requirements.txt`.
+
+- Two airlines, mocked: **GlobalAir** (base × 1.15) and **BudgetWings**
+  (max(base × 0.90, $29.99)).
+- Search → sortable results (client-side) → booking flow with route-aware
+  document field (Passport for international, National ID for domestic).
+- Backend exposes the search/book API; observability via Aspire Dashboard.
 
 ---
 
-## 3. Repository layout
+## 2. Architecture (non-negotiable)
+
+### Backend — strict 3 layers
+
+```
+SkyRoute.Api  →  SkyRoute.BusinessLogic  →  SkyRoute.DataAccessLayer
+```
+
+- `Api` references `BusinessLogic` everywhere and `DataAccessLayer` **only**
+  in its composition root (`Composition/SkyRouteServiceCollectionExtensions.cs`).
+- `BusinessLogic` is pure C# — no ASP.NET, no EF, no IO directly. Talks to
+  external systems exclusively through interfaces.
+- `DataAccessLayer` implements those interfaces (airport catalog, in-memory
+  booking store, mocked provider clients). It depends on `BusinessLogic` for
+  contracts/DTOs.
+
+### Strategy pattern — the operator-onboarding seam
+
+`IFlightProviderStrategy` (in `BusinessLogic/Providers`) is the contract every
+airline implements. `FlightSearchService` injects
+`IEnumerable<IFlightProviderStrategy>` and aggregates results in parallel.
+**Each operator owns its own pricing rule inside its strategy** — no shared
+base class.
+
+**Adding a new airline is additive only:**
+
+1. New raw client (interface + mock) under `DataAccessLayer/Providers/<Name>`.
+2. New `<Name>Provider : IFlightProviderStrategy` under
+   `BusinessLogic/Providers/<Name>`.
+3. Two `services.AddSingleton<...>` lines in `AddSkyRoute()`.
+
+Do not modify any existing strategy when onboarding a new one.
+
+### Frontend — two self-contained, exportable feature modules
+
+```
+src/app/
+  shared/                                  ← DTOs + DI tokens both features share
+  features/
+    search/   index.ts (PUBLIC API only)
+    book/     index.ts (PUBLIC API only)
+```
+
+Rules:
+
+- Each feature module is **independently consumable by a different host
+  application**. The only allowed import path for a host is the feature's
+  `index.ts` barrel.
+- **Features must not import from each other.** They only know about
+  `../../shared`. Cross-feature interaction is host-mediated via injection
+  tokens (`FLIGHT_SELECTION_HANDLER`, `BOOKING_CONFIRMED_HANDLER`) and the
+  book feature's public `BookingService.setSelectedOffer`.
+- Each feature exposes `provideXFeature(config)` returning
+  `EnvironmentProviders` for the host to plug into `ApplicationConfig.providers`.
+- Each feature exposes a `xFeatureRoutes: Routes` array for the host to lazy-load.
+
+If you need to add cross-feature state, add it to `shared/` (a DTO or token).
+**Do not** add an import from `features/book` into `features/search` or
+vice versa.
+
+---
+
+## 3. Code style
+
+- **C# `.editorconfig` is immutable.** File-scoped namespaces, `_camelCase`
+  private fields, `var` when type is apparent, CRLF, 4-space indent in `.cs`,
+  2-space in props/json/yml.
+- `Directory.Build.props` enables `Nullable`, `ImplicitUsings`,
+  `TreatWarningsAsErrors`, `LangVersion=latest` for all production projects.
+  Test projects opt out of `TreatWarningsAsErrors`.
+- Frontend: Angular 21 idioms — standalone components, `inject()`, signals,
+  `input()`/`output()`, OnPush change detection. Prettier (`.prettierrc`) is
+  the formatter.
+
+---
+
+## 4. Repository layout
 
 ```
 sky-route/
-├── AGENTS.md                       ← this file
-├── README.md                       ← currently just a title; needs setup + architecture notes
-├── LICENSE
-├── docker-compose.yml              ← aspire-dashboard + api + web
-├── docs/
-│   └── Requirements.pdf            ← source of truth for the challenge
+├── AGENTS.md, CLAUDE.md, README.md, LICENSE
+├── docker-compose.yml                  ← aspire-dashboard + api + web
+├── docs/requirements.txt               ← source of truth for the challenge
+├── scripts/                            ← convenience scripts (dev/test-all)
 ├── src/
-│   ├── api/SkyRoute/               ← .NET solution (SkyRoute.slnx)
-│   │   ├── Directory.Packages.props  (central package versions)
-│   │   ├── Dockerfile
+│   ├── api/SkyRoute/                   ← .NET solution
+│   │   ├── .editorconfig               ← DO NOT TOUCH
+│   │   ├── Directory.Packages.props    (central package versions)
+│   │   ├── Directory.Build.props       (nullable, warnings-as-errors, …)
 │   │   ├── src/
-│   │   │   ├── SkyRoute.Api/        (Controllers/, Program.cs — OTel + Serilog + CORS)
-│   │   │   ├── SkyRoute.BusinessLogic/   (empty Class1.cs — to be filled)
-│   │   │   └── SkyRoute.DataAccessLayer/ (empty Class1.cs — to be filled)
-│   │   └── test/
-│   │       ├── SkyRoute.Api.UnitTest/
-│   │       ├── SkyRoute.BusinessLogic.UnitTest/
-│   │       └── SkyRoute.DataAccessLayer.UnitTest/
-│   └── web/sky-route/              ← Angular 21 app
-│       ├── package.json
-│       ├── nginx.conf              (serves the built dist behind nginx in Docker)
-│       ├── Dockerfile
-│       └── src/
-│           ├── main.ts             (bootstraps + initTelemetry)
-│           ├── telemetry.ts        (OTLP/HTTP logs → aspire-dashboard:18890)
-│           └── app/                (app.ts, booking.service.ts, logger.service.ts, …)
+│   │   │   ├── SkyRoute.Api/           (Controllers, Contracts, Composition)
+│   │   │   ├── SkyRoute.BusinessLogic/ (Domain, Providers, Search, Booking, Documents)
+│   │   │   └── SkyRoute.DataAccessLayer/ (Airports, Booking, Providers/<Name>)
+│   │   └── test/                       (xUnit + Moq, one project per layer)
+│   └── web/sky-route/                  ← Angular 21 app
+│       ├── src/
+│       │   ├── app/shared/             (contracts shared between features)
+│       │   ├── app/features/search/    (self-contained module + index.ts)
+│       │   ├── app/features/book/      (self-contained module + index.ts)
+│       │   ├── app/app.{ts,html,css,routes.ts,config.ts}
+│       │   ├── environments/           (apiUrl, otlpEndpoint, serviceName)
+│       │   ├── main.ts                 (bootstraps + initTelemetry)
+│       │   └── telemetry.ts            (OTLP/HTTP logs → aspire-dashboard:18890)
+│       └── package.json
 └── test/
-    └── black-box-e2e-selenium-project.txt   (placeholder for future Selenium E2E)
+    └── black-box-e2e-selenium-project.txt   (placeholder for future E2E)
 ```
-
----
-
-## 4. Current state (what exists vs. what's missing)
-
-### Backend (`src/api/SkyRoute`)
-- ✅ Solution with 3 projects + matching unit-test projects.
-- ✅ `Program.cs` configures Serilog, OpenTelemetry (traces/metrics/logs → OTLP),
-  CORS for `http://localhost:4200`, controllers, OpenAPI.
-- ⚠️ `FlightSearchController` and `BookingController` are **stubs returning `WeatherForecast`**
-  — to be rewritten for the real domain.
-- ⚠️ `BusinessLogic` and `DataAccessLayer` projects contain only an empty `Class1.cs`.
-- ❌ No provider abstraction, no mocks for GlobalAir / BudgetWings, no pricing strategies, no booking persistence.
-
-### Frontend (`src/web/sky-route`)
-- ✅ Angular 21 standalone app, OTel logs initialized in `main.ts`.
-- ✅ `BookingService` + `LoggerService` exist but `Booking` interface still mirrors the
-  weather-forecast stub.
-- ⚠️ `app.routes.ts` is empty — no routes wired yet.
-- ❌ No search form, results list, sort controls, booking screen, route-dependent
-  document validation, or airport catalog.
-
-### Infra / tooling
-- ✅ `docker-compose.yml` brings up dashboard + api + web.
-- ✅ Aspire Dashboard at `http://localhost:18888` (OTLP gRPC `18889`, OTLP HTTP `18890`).
-- ❌ README still skeletal — needs setup instructions and architecture notes (a deliverable).
 
 ---
 
 ## 5. How to run / build / test
 
-### Backend (.NET)
+### Backend
+
 ```powershell
 cd src/api/SkyRoute
 dotnet restore
 dotnet build
-dotnet test                              # runs all xUnit projects
-dotnet run --project src/SkyRoute.Api    # http://localhost:8080 (or launchSettings)
+dotnet test                              # 39 tests, all green
+dotnet run --project src/SkyRoute.Api    # http://localhost:8080
 ```
 
-### Frontend (Angular)
+### Frontend
+
 ```powershell
 cd src/web/sky-route
 npm install
 npm start            # ng serve → http://localhost:4200
-npm run build        # production build into dist/
-npm test             # ng test (Vitest)
+npm run build        # production bundle into dist/
+npm test             # Vitest in run mode, 20 tests
 ```
 
 ### Full stack via Docker
+
 ```powershell
 docker compose up --build
-# API:        http://localhost:8080
-# Web:        http://localhost:4200
-# Dashboard:  http://localhost:18888
+# Web: 4200 · API: 8080 · Dashboard: 18888
 ```
 
 ---
 
-## 6. Conventions & guidelines for agents
+## 6. Working guidelines for agents
 
-- **Language/style**
-  - .NET: nullable on, file-scoped namespaces, primary constructors where natural,
-    follow the repo `.editorconfig` (in `src/api/SkyRoute/.editorconfig`).
-  - Angular: standalone components, `inject()` over constructor DI, signals for
-    component state, Prettier (`.prettierrc`) for formatting.
-- **Architecture**
-  - Keep the API → BusinessLogic → DataAccessLayer separation. Controllers stay thin.
-  - Model providers behind an interface (e.g. `IFlightProvider`) plus a pricing
-    strategy per provider so adding a new airline is a new class, not edits to existing ones.
-  - Money: use `decimal` end-to-end; round only at the boundary required by the provider rule.
-- **Pricing**
-  - Compute per-passenger price using provider rules, then total = per-passenger × passengers.
-  - Always return both numbers in the API response so the UI doesn't recompute.
-- **Domestic vs. international**
-  - Determined by comparing the `country` of origin & destination airports.
-  - Surface this flag in the search-result item so the booking screen can pick the right
-    document label/validator without re-querying.
-- **Testing**
-  - Unit-test each provider's pricing rule (including BudgetWings `$29.99` floor).
-  - Unit-test domestic/international detection and the document-validation switch.
-- **Observability**
-  - Don't strip the existing OTel/Serilog wiring; add spans/logs around new
-    search and booking operations.
-- **Out of scope (unless time permits)**
-  - Real DB (in-memory store is fine), auth, payments, real airline APIs, cloud deploy.
-  - Anything skipped must be called out in `README.md` under "Known limitations".
+- **Do not modify `src/api/SkyRoute/.editorconfig`.** Off-limits per the brief.
+- **Do not introduce cross-feature imports** between `features/search` and
+  `features/book`. Use `shared/` or host-provided tokens.
+- **Do not modify existing provider strategies** when onboarding a new
+  airline — extend, don't edit.
+- Keep money in `decimal`; round only via `PriceCalculator.Round2` (away
+  from zero) — matches the GlobalAir and BudgetWings tests.
+- Surface domestic/international in `FlightOffer.IsInternational` (derived
+  in the strategies from airport `Country`); the booking screen reuses it to
+  pick the document validator.
+- Add unit tests for any new strategy (pricing math + edge cases like the
+  $29.99 floor) and any new validator.
+- Don't strip the OpenTelemetry / Serilog wiring. Add spans/logs around new
+  search or booking operations using `ActivitySource("SkyRoute.BusinessLogic")`.
 
----
+## 7. Out of scope (unless explicitly asked)
 
-## 7. Suggested next steps (rough order)
-
-1. Define domain types in `SkyRoute.BusinessLogic`: `Airport`, `FlightSearchRequest`,
-   `FlightOffer`, `PassengerCount`, `CabinClass`, `Money`, `BookingRequest`, `BookingConfirmation`.
-2. Introduce `IFlightProvider` + `GlobalAirProvider` / `BudgetWingsProvider` mocks
-   (deterministic-ish fake data) and a `FlightSearchService` that fans out and aggregates.
-3. Replace `FlightSearchController` and `BookingController` stubs with the real endpoints
-   (`POST /api/flights/search`, `POST /api/bookings`) and DTOs.
-4. Add an in-memory booking store in `SkyRoute.DataAccessLayer` returning a reference code.
-5. Frontend: airport catalog, search form, results table with client-side sort, booking
-   screen with route-aware document field, wire `BookingService` to the real API.
-6. Tests for pricing rules, sorting helpers, document validators.
-7. Flesh out the top-level `README.md` with run instructions, architecture decisions,
-   and trade-offs (this is an explicit deliverable).
+- Real DB, auth, payments, real airline APIs, cloud deploy, i18n.
+- Anything skipped due to time stays in README "Known limitations".
