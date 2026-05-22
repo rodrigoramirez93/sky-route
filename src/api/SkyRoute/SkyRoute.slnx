@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SkyRoute.Api/SkyRoute.Api.csproj" />
+    <Project Path="src/SkyRoute.BusinessLogic/SkyRoute.BusinessLogic.csproj" />
+    <Project Path="src/SkyRoute.DataAccessLayer/SkyRoute.DataAccessLayer.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/SkyRoute.Api.UnitTest/SkyRoute.Api.UnitTest.csproj" />
+    <Project Path="test/SkyRoute.BusinessLogic.UnitTest/SkyRoute.BusinessLogic.UnitTest.csproj" />
+    <Project Path="test/SkyRoute.DataAccessLayer.UnitTest/SkyRoute.DataAccessLayer.UnitTest.csproj" />
+  </Folder>
+</Solution>
