@@ -1,4 +1,19 @@
 services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: aspire-dashboard
+    ports:
+      - "18888:18888"   # Dashboard UI
+      - "18889:18889"   # OTLP gRPC endpoint (used by the .NET API)
+      - "18890:18890"   # OTLP HTTP endpoint (used by the Angular browser app)
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+      DASHBOARD__OTLP__ENDPOINTURL: "http://0.0.0.0:18889"
+      DASHBOARD__OTLP__HTTPENDPOINTURL: "http://0.0.0.0:18890"
+      # Allow the Angular dev/runtime origin to POST OTLP/HTTP from the browser
+      DASHBOARD__OTLP__CORS__ALLOWEDORIGINS: "http://localhost:4200"
+      DASHBOARD__OTLP__CORS__ALLOWEDHEADERS: "*"
+
   api:
     build:
       context: ./src/api/SkyRoute
@@ -8,6 +23,11 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_SERVICE_NAME: SkyRoute.Api
+    depends_on:
+      - aspire-dashboard
 
   web:
     build:
