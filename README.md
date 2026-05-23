@@ -16,7 +16,7 @@ Senior Full-Stack Developer Challenge.
 ### Docker (everything together)
 
 ```powershell
-docker compose up --build
+docker compose up
 # Web:        http://localhost:4200
 # API:        http://localhost:8080
 # Dashboard:  http://localhost:18888
