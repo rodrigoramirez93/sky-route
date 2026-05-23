@@ -1,0 +1,26 @@
+.sr-document {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sr-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sr-muted);
+}
+
+.sr-hint {
+  color: var(--sr-muted);
+  font-size: 0.75rem;
+}
+
+.sr-error-text {
+  color: var(--sr-danger);
+  font-size: 0.78rem;
+}
+
+.sr-input-error {
+  border-color: var(--sr-danger);
+  box-shadow: 0 0 0 3px rgba(255, 107, 122, 0.18);
+}

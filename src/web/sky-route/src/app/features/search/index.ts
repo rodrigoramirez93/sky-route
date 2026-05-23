@@ -4,7 +4,7 @@
  */
 export { provideSearchFeature, type SearchFeatureConfig } from './search.providers';
 export { searchFeatureRoutes } from './search.routes';
-export { SearchPageComponent } from './pages/search-page.component';
+export { SearchPageComponent } from './pages/search-page/search-page.component';
 export { FlightSearchService } from './services/flight-search.service';
 export type { SortKey } from './state/sort-offers';
 export { sortOffers } from './state/sort-offers';

@@ -1,0 +1,44 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="sr-passenger-form">
+  <ng-container formArrayName="passengers">
+    @for (group of passengers.controls; track $index) {
+      <fieldset [formGroupName]="$index" class="sr-passenger">
+        <legend>Passenger {{ $index + 1 }}</legend>
+
+        <label class="sr-field">
+          <span class="sr-label">Full name</span>
+          <input type="text" formControlName="fullName" autocomplete="name" />
+          @if (showError($index, 'fullName')) {
+            <small class="sr-error-text">Please enter the passenger's full name.</small>
+          }
+        </label>
+
+        <label class="sr-field">
+          <span class="sr-label">Email</span>
+          <input type="email" formControlName="email" autocomplete="email" />
+          @if (showError($index, 'email')) {
+            <small class="sr-error-text">Enter a valid email address.</small>
+          }
+        </label>
+
+        <div class="sr-field">
+          <sr-document-field
+            [isInternational]="offer().isInternational"
+            formControlName="documentNumber"
+          />
+        </div>
+      </fieldset>
+    }
+  </ng-container>
+
+  <div class="sr-actions">
+    <a class="sr-btn-ghost sr-back-link" routerLink="/search">← Back to search</a>
+    <button type="submit" class="sr-btn-primary" [disabled]="form.invalid || submitting()">
+      @if (submitting()) {
+        <span class="sr-spinner" aria-hidden="true"></span>
+        <span>Booking…</span>
+      } @else {
+        <span>Confirm booking</span>
+      }
+    </button>
+  </div>
+</form>

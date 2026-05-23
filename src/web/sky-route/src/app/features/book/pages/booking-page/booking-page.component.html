@@ -1,0 +1,58 @@
+@if (offer(); as o) {
+  <section class="sr-booking-page">
+    <header class="sr-page-header">
+      <h2>Confirm your booking</h2>
+      <p class="sr-page-subtitle">Review your selection and add passenger details.</p>
+    </header>
+
+    <div class="sr-booking-grid">
+      <div class="sr-booking-form">
+        <div class="sr-card">
+          <sr-passenger-form
+            [offer]="o"
+            [submitting]="submitting()"
+            (confirmed)="onConfirm(o, $event)"
+          />
+        </div>
+
+        <div class="sr-status-region" aria-live="polite">
+          @if (error(); as err) {
+            <div class="sr-card sr-error" role="alert">
+              <span aria-hidden="true">⚠</span> {{ err }}
+            </div>
+          }
+          @if (confirmation(); as conf) {
+            <div class="sr-card sr-success" role="status">
+              <div class="sr-success-icon" aria-hidden="true">✓</div>
+              <div>
+                <strong>Booking confirmed.</strong>
+                <p>Reference: <code>{{ conf }}</code></p>
+                <a class="sr-link" routerLink="/search">Book another flight →</a>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <aside class="sr-booking-aside">
+        <div class="sr-card">
+          <sr-flight-summary [offer]="o" />
+        </div>
+        <div class="sr-card">
+          <sr-price-breakdown [offer]="o" />
+        </div>
+      </aside>
+    </div>
+  </section>
+} @else {
+  <section class="sr-booking-page">
+    <div class="sr-card sr-empty">
+      <span class="sr-empty-icon" aria-hidden="true">🧳</span>
+      <div>
+        <strong>No flight selected.</strong>
+        <p>Pick a flight from the search results to start booking.</p>
+        <a class="sr-btn-primary sr-btn-link" routerLink="/search">Go to search</a>
+      </div>
+    </div>
+  </section>
+}

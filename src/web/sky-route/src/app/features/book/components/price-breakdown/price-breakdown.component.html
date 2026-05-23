@@ -1,0 +1,16 @@
+<table class="sr-breakdown">
+  <tbody>
+    <tr>
+      <td>Per passenger</td>
+      <td>{{ offer().currency }} {{ offer().pricePerPassenger | number: '1.2-2' }}</td>
+    </tr>
+    <tr>
+      <td>Passengers</td>
+      <td>× {{ offer().passengers }}</td>
+    </tr>
+    <tr class="sr-total">
+      <td>Total</td>
+      <td>{{ offer().currency }} {{ offer().totalPrice | number: '1.2-2' }}</td>
+    </tr>
+  </tbody>
+</table>

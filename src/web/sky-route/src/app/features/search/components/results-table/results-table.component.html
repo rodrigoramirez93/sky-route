@@ -1,0 +1,56 @@
+<div class="sr-results">
+  <div class="sr-results-header">
+    <span class="sr-results-count">{{ offers().length }} flight{{ offers().length === 1 ? '' : 's' }} found</span>
+    <label class="sr-sort">
+      <span class="sr-sort-label">Sort by</span>
+      <select [value]="sortKey()" (change)="sortChange.emit($any($event.target).value)">
+        <option value="price-asc">Price (low → high)</option>
+        <option value="price-desc">Price (high → low)</option>
+        <option value="duration">Duration (shortest)</option>
+        <option value="departure">Departure time</option>
+      </select>
+    </label>
+  </div>
+
+  <ul class="sr-flight-list">
+    @for (o of offers(); track o.providerKey + o.flightNumber + o.departureUtc) {
+      <li class="sr-flight-card">
+        <div class="sr-flight-meta">
+          <span class="sr-provider" [attr.data-provider]="o.providerKey">{{ o.providerKey }}</span>
+          <span class="sr-flight-number">Flight {{ o.flightNumber }}</span>
+        </div>
+
+        <div class="sr-flight-route">
+          <div class="sr-endpoint">
+            <span class="sr-time">{{ o.departureUtc | date: 'shortTime' : 'UTC' }}</span>
+            <span class="sr-code">{{ o.origin.code }}</span>
+            <span class="sr-date">{{ o.departureUtc | date: 'mediumDate' : 'UTC' }}</span>
+          </div>
+          <div class="sr-route-line" aria-hidden="true">
+            <span class="sr-duration">{{ formatDuration(o.durationMinutes) }}</span>
+            <span class="sr-line"></span>
+            <span class="sr-plane">✈</span>
+          </div>
+          <div class="sr-endpoint sr-endpoint--end">
+            <span class="sr-time">{{ o.arrivalUtc | date: 'shortTime' : 'UTC' }}</span>
+            <span class="sr-code">{{ o.destination.code }}</span>
+            <span class="sr-date">{{ o.arrivalUtc | date: 'mediumDate' : 'UTC' }}</span>
+          </div>
+        </div>
+
+        <div class="sr-flight-tags">
+          <span class="sr-badge">{{ o.cabin }}</span>
+          <span class="sr-badge" [class.sr-badge--intl]="o.isInternational" [class.sr-badge--dom]="!o.isInternational">
+            {{ o.isInternational ? 'International' : 'Domestic' }}
+          </span>
+        </div>
+
+        <div class="sr-flight-price">
+          <span class="sr-total"><strong>{{ o.currency }} {{ o.totalPrice | number: '1.2-2' }}</strong></span>
+          <span class="sr-per-pax">{{ o.currency }} {{ o.pricePerPassenger | number: '1.2-2' }} / passenger</span>
+          <button type="button" class="sr-btn-primary" (click)="select.emit(o)">Select</button>
+        </div>
+      </li>
+    }
+  </ul>
+</div>

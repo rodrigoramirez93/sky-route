@@ -223,8 +223,8 @@ validation switching, search aggregation, client-side sorting.
 From the repo root:
 
 ```powershell
-./scripts/dev.ps1        # docker compose up --build
-./scripts/test-all.ps1   # dotnet test + npm test
+./scripts/dev.cmd        # docker compose up --build
+./scripts/test-all.cmd   # dotnet test + npm test + Playwright E2E
 ```
 
 ---

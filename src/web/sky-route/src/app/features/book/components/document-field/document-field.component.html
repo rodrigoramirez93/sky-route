@@ -1,0 +1,15 @@
+<label class="sr-document">
+  <span class="sr-label">{{ label() }}</span>
+  <input
+    type="text"
+    [formControl]="control"
+    [attr.aria-label]="label()"
+    [attr.aria-describedby]="hintId"
+    [class.sr-input-error]="control.touched && control.invalid"
+    (blur)="onTouched()"
+  />
+  <small [id]="hintId" class="sr-hint">{{ helperText() }}</small>
+  @if (control.touched && control.invalid) {
+    <small class="sr-error-text">{{ errorMessage() }}</small>
+  }
+</label>

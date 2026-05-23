@@ -1,0 +1,25 @@
+<div class="sr-summary">
+  <div class="sr-summary-head">
+    <h3>
+      <span class="sr-code">{{ offer().origin.code }}</span>
+      <span class="sr-arrow" aria-hidden="true">→</span>
+      <span class="sr-code">{{ offer().destination.code }}</span>
+    </h3>
+    <span class="sr-badge" [class.sr-badge--intl]="offer().isInternational" [class.sr-badge--dom]="!offer().isInternational">
+      {{ offer().isInternational ? 'International' : 'Domestic' }}
+    </span>
+  </div>
+  <p class="sr-summary-meta">
+    <strong>{{ offer().providerKey }}</strong> · Flight {{ offer().flightNumber }} · {{ offer().cabin }}
+  </p>
+  <dl class="sr-summary-times">
+    <div>
+      <dt>Departs</dt>
+      <dd>{{ offer().departureUtc | date: 'medium' : 'UTC' }}</dd>
+    </div>
+    <div>
+      <dt>Arrives</dt>
+      <dd>{{ offer().arrivalUtc | date: 'medium' : 'UTC' }}</dd>
+    </div>
+  </dl>
+</div>

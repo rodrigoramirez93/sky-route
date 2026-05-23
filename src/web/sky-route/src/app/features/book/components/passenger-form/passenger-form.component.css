@@ -1,0 +1,65 @@
+.sr-passenger-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sr-passenger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--sr-border);
+  border-radius: var(--sr-radius);
+  background: var(--sr-surface);
+}
+
+legend {
+  font-weight: 600;
+  color: var(--sr-primary);
+  padding: 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.sr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.sr-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sr-muted);
+}
+
+.sr-error-text {
+  color: var(--sr-danger);
+  font-size: 0.78rem;
+}
+
+.sr-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sr-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sr-back-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+@media (max-width: 640px) {
+  .sr-passenger {
+    grid-template-columns: 1fr;
+  }
+}

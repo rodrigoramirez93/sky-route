@@ -83,6 +83,29 @@ If you need to add cross-feature state, add it to `shared/` (a DTO or token).
 **Do not** add an import from `features/book` into `features/search` or
 vice versa.
 
+#### Component file layout (mandatory)
+
+Every Angular component lives in **its own folder** containing exactly four
+co-located files:
+
+```
+<feature>/components/<component-name>/
+  <component-name>.component.ts
+  <component-name>.component.html
+  <component-name>.component.css
+  <component-name>.component.spec.ts
+```
+
+- **No inline `styles: [...]`** in `@Component` metadata — always reference an
+  external stylesheet via `styleUrls: ['./<component-name>.component.css']`
+  (or `styleUrl` for the root `App`).
+- **No inline `template`** — always use `templateUrl`.
+- The root `App` (`src/app/app.{ts,html,css,spec.ts}`) is the only allowed
+  exception to the folder-per-component rule and already satisfies the
+  external-template/styles rule.
+- Apply these conventions to every new component and when touching existing
+  ones.
+
 ---
 
 ## 3. Code style

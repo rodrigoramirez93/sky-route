@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { BookingPageComponent } from './pages/booking-page.component';
+import { BookingPageComponent } from './pages/booking-page/booking-page.component';
 
 export const bookFeatureRoutes: Routes = [
   {

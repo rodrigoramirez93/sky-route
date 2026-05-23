@@ -1,0 +1,54 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="sr-search-form">
+  <label class="sr-airport-field">
+    <span class="sr-label">✈ Origin</span>
+    <select formControlName="originCode" [title]="selectedAirportLabel(form.controls.originCode.value)">
+      <option value="" disabled>Select…</option>
+      @for (a of airports(); track a.code) {
+        <option [value]="a.code" [title]="a.code + ' — ' + a.city + ' (' + a.country + ')'">
+          {{ a.code }} — {{ a.city }}
+        </option>
+      }
+    </select>
+  </label>
+
+  <label class="sr-airport-field">
+    <span class="sr-label">🎯 Destination</span>
+    <select formControlName="destinationCode" [title]="selectedAirportLabel(form.controls.destinationCode.value)">
+      <option value="" disabled>Select…</option>
+      @for (a of airports(); track a.code) {
+        <option [value]="a.code" [title]="a.code + ' — ' + a.city + ' (' + a.country + ')'">
+          {{ a.code }} — {{ a.city }}
+        </option>
+      }
+    </select>
+  </label>
+
+  <label>
+    <span class="sr-label">Departure</span>
+    <input type="date" formControlName="departureDate" [min]="today" />
+  </label>
+
+  <label>
+    <span class="sr-label">Passengers</span>
+    <input type="number" min="1" max="9" formControlName="passengers" />
+  </label>
+
+  <label>
+    <span class="sr-label">Cabin</span>
+    <select formControlName="cabin">
+      @for (c of cabins; track c) {
+        <option [value]="c">{{ cabinLabel[c] }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="sr-submit-cell">
+    <button type="submit" class="sr-btn-primary" [disabled]="form.invalid || sameRoute()">
+      Search flights
+    </button>
+  </div>
+
+  @if (sameRoute()) {
+    <p class="sr-form-hint">Origin and destination must differ.</p>
+  }
+</form>

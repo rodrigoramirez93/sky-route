@@ -1,0 +1,48 @@
+.sr-search-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sr-page-header h2 {
+  font-size: 1.5rem;
+}
+
+.sr-page-subtitle {
+  color: var(--sr-muted);
+  margin: 0.25rem 0 0;
+}
+
+.sr-search-card {
+  padding: 1.25rem 1.25rem 1rem;
+}
+
+.sr-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sr-muted);
+}
+
+.sr-status.sr-error {
+  background: var(--sr-danger-soft);
+  color: var(--sr-danger);
+  border-color: var(--sr-danger-border);
+}
+
+.sr-empty {
+  gap: 1rem;
+}
+
+.sr-empty-icon {
+  font-size: 1.5rem;
+}
+
+.sr-empty strong {
+  color: var(--sr-text);
+}
+
+.sr-empty p {
+  margin: 0.25rem 0 0;
+  color: var(--sr-muted);
+}
