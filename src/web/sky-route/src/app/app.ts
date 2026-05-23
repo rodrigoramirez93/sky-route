@@ -14,6 +14,6 @@ export class App implements OnInit {
   private readonly logger = inject(LoggerService);
 
   ngOnInit(): void {
-    this.logger.info('Sky Route Angular app initialized', { component: 'App' });
+    this.logger.info('Sky Route Angular app initialized', 'App');
   }
 }

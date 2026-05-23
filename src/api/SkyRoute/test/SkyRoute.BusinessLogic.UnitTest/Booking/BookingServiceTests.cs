@@ -1,5 +1,6 @@
 namespace SkyRoute.BusinessLogic.UnitTest.Booking;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using SkyRoute.BusinessLogic.Airports;
 using SkyRoute.BusinessLogic.Booking;
@@ -67,7 +68,8 @@ public sealed class BookingServiceTests
             new DocumentValidatorFactory(),
             new Mock<IBookingRepository>().Object,
             new BookingReferenceGenerator(),
-            TimeProvider.System);
+            TimeProvider.System,
+            NullLogger<BookingService>.Instance);
 
         var request = NewRequest("JFK", "ZZZ", 1, 100m, "12345");
 
@@ -90,7 +92,8 @@ public sealed class BookingServiceTests
             new DocumentValidatorFactory(),
             repo.Object,
             new BookingReferenceGenerator(),
-            TimeProvider.System);
+            TimeProvider.System,
+            NullLogger<BookingService>.Instance);
 
         return (service, repo);
     }

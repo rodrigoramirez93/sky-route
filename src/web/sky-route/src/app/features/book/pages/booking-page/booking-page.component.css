@@ -67,7 +67,7 @@
   height: 32px;
   border-radius: 50%;
   background: var(--sr-success);
-  color: #06140a;
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -79,7 +79,7 @@
 }
 
 .sr-success code {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.04);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-size: 0.95rem;

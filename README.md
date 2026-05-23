@@ -22,6 +22,45 @@ docker compose up --build
 # Dashboard:  http://localhost:18888
 ```
 
+#### Local dev environment setup (Windows / DevOps)
+
+Step-by-step for engineers setting up the stack locally on Windows:
+
+1. **Install prerequisites.** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   and make sure the Docker engine is **running** (whale icon → "Docker Desktop is running").
+2. **Open an elevated PowerShell.** Right-click PowerShell (or Windows Terminal)
+   and choose **Run as administrator**. See the gotcha below.
+3. **Clone and enter the repo.**
+
+   ```powershell
+   git clone https://github.com/rodrigoramirez93/sky-route.git
+   cd sky-route
+   ```
+
+4. **Bring the stack up.**
+
+   ```powershell
+   docker compose up
+   ```
+
+5. **Open the access points** once the containers report healthy:
+
+   - Application: <http://localhost:4200/>
+   - Aspire Dashboard: <http://localhost:18888/>
+
+> ⚠️ **Common gotcha — must run as administrator on Windows.** Docker Compose
+> needs an **elevated terminal** on Windows. Without it the Docker client cannot
+> connect to the daemon and `docker compose up` fails with:
+>
+> ```
+> unable to get image 'mcr.microsoft.com/dotnet/aspire-dashboard:latest':
+> error during connect: in the default daemon configuration on Windows,
+> the docker client must be run with elevated privileges to connect:
+> ... open //./pipe/docker_engine: Access is denied
+> ```
+>
+> Close the terminal, reopen it via **Run as administrator**, and retry.
+
 ### Option B — Run locally
 
 Backend:
@@ -193,6 +232,38 @@ bootstrapApplication(MyHost, {
 
 Total price = per-passenger price × number of passengers, also rounded to 2
 decimals. The API always returns both numbers.
+
+---
+
+## Observability — what to watch
+
+All three OpenTelemetry signals (logs, traces, **metrics**) are exported to
+the Aspire Dashboard. Metrics share resource attributes (`service.name`,
+`service.version`, `deployment.environment`, `service.instance.id`) with the
+existing logs/traces so they line up under the same service entries.
+
+| Metric | Source | Tells you |
+| --- | --- | --- |
+| `http.server.request.duration` (P95) | API (ASP.NET Core) | API latency regressions |
+| `http.server.active_requests` | API (ASP.NET Core) | API saturation / stuck requests |
+| `http.client.request.duration` | API (HttpClient) | Downstream call latency |
+| `dotnet.gc.collections`, `dotnet.thread_pool.queue.length` | API (Runtime) | Runtime health |
+| `skyroute.flights.search.duration` by `flight.provider` | API custom | Which airline is slow |
+| `skyroute.flights.search.in_flight` | API custom | Concurrent search load |
+| `skyroute.providers.calls{outcome=error}` rate | API custom | Provider reliability |
+| `skyroute.bookings.created` | API custom | Business throughput |
+| `skyroute.bookings.total_price` (P95) | API custom | Revenue distribution |
+| `skyroute.bookings.validation_failed{reason}` | API custom | UX / document-rule issues |
+| `web.vitals.lcp` P75 (rating=good/needs-improvement/poor) | Web | Perceived page-load performance |
+| `web.api.duration` P95, `web.api.errors` rate | Web | Real-user API latency + failures |
+| `web.route_navigation.duration` P95 | Web | SPA navigation responsiveness |
+| `web.document.load`, `web.page_views` | Web | Initial load + traffic by route |
+
+**Cardinality policy:** metric attributes are limited to provider, cabin,
+international flag, outcome, currency, HTTP method, status class, route
+template, and Core Web Vitals rating. Identifiers (correlation id, session
+id, user data, raw URLs) are deliberately kept on **traces/logs**, never on
+metrics.
 
 ---
 

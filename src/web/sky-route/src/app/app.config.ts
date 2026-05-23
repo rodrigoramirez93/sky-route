@@ -1,6 +1,6 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { Router, provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -8,6 +8,8 @@ import { provideSearchFeature } from './features/search';
 import { provideBookFeature, BookingService } from './features/book';
 import { FLIGHT_SELECTION_HANDLER, FlightSelectionHandler } from './shared';
 import { inject } from '@angular/core';
+import { correlationInterceptor } from './correlation.interceptor';
+import { MetricsService } from './metrics.service';
 
 /**
  * Bridges the search feature's selection event to the book feature.
@@ -26,9 +28,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([correlationInterceptor])),
     provideBookFeature({ apiBaseUrl: environment.apiUrl }),
     provideSearchFeature({ apiBaseUrl: environment.apiUrl }),
     { provide: FLIGHT_SELECTION_HANDLER, useFactory: flightSelectionBridge },
+    provideAppInitializer(() => inject(MetricsService).start()),
   ],
 };

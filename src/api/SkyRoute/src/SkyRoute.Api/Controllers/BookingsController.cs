@@ -9,10 +9,12 @@ using SkyRoute.BusinessLogic.Booking;
 public sealed class BookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;
+    private readonly ILogger<BookingsController> _logger;
 
-    public BookingsController(IBookingService bookingService)
+    public BookingsController(IBookingService bookingService, ILogger<BookingsController> logger)
     {
         _bookingService = bookingService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -32,6 +34,7 @@ public sealed class BookingsController : ControllerBase
         }
         catch (BookingValidationException ex)
         {
+            _logger.LogWarning("Booking rejected: {Reason}", ex.Message);
             return ValidationProblem(ex.Message);
         }
     }

@@ -1,6 +1,7 @@
 namespace SkyRoute.Api.UnitTest.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using SkyRoute.Api.Contracts;
 using SkyRoute.Api.Controllers;
@@ -14,7 +15,7 @@ public sealed class FlightsControllerTests
     public async Task Search_RejectsSameOriginAndDestination()
     {
         var service = new Mock<IFlightSearchService>();
-        var controller = new FlightsController(service.Object);
+        var controller = new FlightsController(service.Object, NullLogger<FlightsController>.Instance);
 
         var request = new FlightSearchRequestDto
         {
@@ -46,7 +47,7 @@ public sealed class FlightsControllerTests
         service.Setup(s => s.SearchAsync(It.IsAny<FlightSearchCriteria>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { offer });
 
-        var controller = new FlightsController(service.Object);
+        var controller = new FlightsController(service.Object, NullLogger<FlightsController>.Instance);
         var request = new FlightSearchRequestDto
         {
             OriginCode = "JFK",

@@ -9,10 +9,12 @@ using SkyRoute.BusinessLogic.Search;
 public sealed class FlightsController : ControllerBase
 {
     private readonly IFlightSearchService _searchService;
+    private readonly ILogger<FlightsController> _logger;
 
-    public FlightsController(IFlightSearchService searchService)
+    public FlightsController(IFlightSearchService searchService, ILogger<FlightsController> logger)
     {
         _searchService = searchService;
+        _logger = logger;
     }
 
     [HttpPost("search")]
@@ -24,6 +26,9 @@ public sealed class FlightsController : ControllerBase
     {
         if (string.Equals(request.OriginCode, request.DestinationCode, StringComparison.OrdinalIgnoreCase))
         {
+            _logger.LogWarning(
+                "Flight search rejected: origin and destination match ({Origin})",
+                request.OriginCode);
             ModelState.AddModelError(nameof(request.DestinationCode), "Destination must differ from origin.");
             return ValidationProblem(ModelState);
         }
